@@ -28,10 +28,27 @@ This solution has some challenges for deployment we would like to improve upon:
 -- view of workflow figure, showing each piece in turn
 
 A typical molecular dynamics workflow probably consists of at least the following, at least when running a single, independent simulation (e.g. not replica exchange).
+
 1. We first set up the system, perhaps on our own fileserver or workstation.
 2. We would then push the files required for execution of our simulation to a remote cluster such as Stampede.
    Typically done via SFTP or SCP, or some variant.
 3. We'd submit a script to the queueing system on the cluster for executing the simulation, and at some point that simulation would execute on a compute node.
 4. When the simulation job has finished, we might pull the resulting data files from the cluster using our fileserver.
 5. We could then run any number of postprocessing or analysis tasks.
-   We might also decide whether or not to continue the simulation, which would mean we move back to (2).
+   We might also decide whether or not to continue the simulation, which would mean we start a new set of tasks beginning with one like (2).
+
+This set of tasks could be expressed as a *workflow*, which happens to be an *directed, acyclic graph* ("DAG") giving nodes as tasks and arrows for dependencies.
+This can be thought of as a flowchart of the work we need to perform.
+It turns out that the system of automation we are presenting can perform exactly the tasks laid out in this way, as each task is:
+1. Discretely defined. Each task is either yet to be started, running, complete, or failed.
+   Because the state of a task is one of these discrete values, it is clearly defined when we can execute a task that is dependent on another.
+2. Each task is *idempotent*, meaning that if we were in the middle of a task and it failed for some reason, we could just do that task again and we'd be fine.
+   There would be no side effects to re-running a task, save for some resource cost (CPU hours, bandwidth).
+   This affords a great deal of fault tolerance, which becomes important with the scale of work we are executing.
+
+We can store this workflow in a central place accessible to all machines that need to see it, such as a webserver.
+For the case of the system we are presenting here, this happens to be a MongoDB database.
+
+## Fireworks: a general-purpose workflow automation system
+
+
