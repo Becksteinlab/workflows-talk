@@ -25,7 +25,6 @@ This solution has some challenges for deployment we would like to improve upon:
 
 ## A typical molecular dynamics workflow
 
--- view of workflow figure, showing each piece in turn
 ![molecular dynamics workflow](figures/workflow.svg)
 
 A typical molecular dynamics workflow probably consists of at least the following, at least when running a single, independent simulation (e.g. not replica exchange).
@@ -74,3 +73,5 @@ These data elements are handled by the following infrastructure components:
    These processes must be able to reach the *Launchpad* to work.
 
 To illustrate these components all interacting, we'll return to our example of executing MD on a remote cluster.
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture.svg)
