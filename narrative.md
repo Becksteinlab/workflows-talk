@@ -23,5 +23,15 @@ This solution has some challenges for deployment we would like to improve upon:
 3. Requires an understanding of how the system works, and how communication must occur between components, in order to debug persistent failures.
    This talk seeks to provide that understanding at a high level for getting started.
 
-
 ## A typical molecular dynamics workflow
+
+-- view of workflow figure, showing each piece in turn
+
+A typical molecular dynamics workflow probably consists of at least the following, at least when running a single, independent simulation (e.g. not replica exchange).
+1. We first set up the system, perhaps on our own fileserver or workstation.
+2. We would then push the files required for execution of our simulation to a remote cluster such as Stampede.
+   Typically done via SFTP or SCP, or some variant.
+3. We'd submit a script to the queueing system on the cluster for executing the simulation, and at some point that simulation would execute on a compute node.
+4. When the simulation job has finished, we might pull the resulting data files from the cluster using our fileserver.
+5. We could then run any number of postprocessing or analysis tasks.
+   We might also decide whether or not to continue the simulation, which would mean we move back to (2).
