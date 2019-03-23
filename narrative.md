@@ -26,6 +26,7 @@ This solution has some challenges for deployment we would like to improve upon:
 ## A typical molecular dynamics workflow
 
 -- view of workflow figure, showing each piece in turn
+![molecular dynamics workflow](figures/workflow.svg)
 
 A typical molecular dynamics workflow probably consists of at least the following, at least when running a single, independent simulation (e.g. not replica exchange).
 
@@ -40,15 +41,36 @@ A typical molecular dynamics workflow probably consists of at least the followin
 This set of tasks could be expressed as a *workflow*, which happens to be an *directed, acyclic graph* ("DAG") giving nodes as tasks and arrows for dependencies.
 This can be thought of as a flowchart of the work we need to perform.
 It turns out that the system of automation we are presenting can perform exactly the tasks laid out in this way, as each task is:
-1. Discretely defined. Each task is either yet to be started, running, complete, or failed.
+1. Discretely defined. Each task either waiting for dependencies, ready, running, complete, or failed.
    Because the state of a task is one of these discrete values, it is clearly defined when we can execute a task that is dependent on another.
-2. Each task is *idempotent*, meaning that if we were in the middle of a task and it failed for some reason, we could just do that task again and we'd be fine.
+2. *Idempotent*, meaning that if we were in the middle of a task and it failed for some reason, we could just do that task again and we'd be fine.
    There would be no side effects to re-running a task, save for some resource cost (CPU hours, bandwidth).
    This affords a great deal of fault tolerance, which becomes important with the scale of work we are executing.
 
 We can store this workflow in a central place accessible to all machines that need to see it, such as a webserver.
-For the case of the system we are presenting here, this happens to be a MongoDB database.
+This system can execute hundreds of these workflows, perhaps each running very different simulations, at the same time, using the same infrastructure.
+This is powerful, and can win us some immense throughput.
+
+As an illustration of this throughput, we have a 
 
 ## Fireworks: a general-purpose workflow automation system
 
+The system we have described so far is [`fireworks`](https://github.com/materialsproject/fireworks), a workflow automation framework written entirely in Python.
+This was not developed by us, but is an open source project born out of *The Materials Project*, a large-scale effort to obtain computed information on known and predicted materials.
+This is not the first workflow automation system that uses DAGs for expression of work, and it won't be the last, but it is effective for our needs.
 
+Fireworks includes the following data elements, with fun names to make them easier to talk about:
+1. *Workflow*: a DAG, with tasks as nodes and dependencies expressed as vectors between them.
+2. *FireWork*: a single task in a *Workflow*, with discrete state (waiting, ready, running, complete, failed).
+3. *Firetask*: a subtask of a *FireWork*. These are run in sequence within a *FireWork*, and all must succeed for the *FireWork* to succeed.
+
+These data elements are handled by the following infrastructure components:
+1. A *Launchpad*, where the Workflows we construct are stored along with the execution states of their tasks.
+   This is a MongoDB database.
+2. *Fireworkers*: processes launched on other machines to execute work.
+   These processes reach out across the network, often the internet, to query the *Launchpad*.
+   They will grab the next available *ready* *FireWork*, set its state to *running*, and execute it.
+   If it fails to complete, it will set the state to *failed*; if it succeeds it will set it to *complete*.
+   These processes must be able to reach the *Launchpad* to work.
+
+To illustrate these components all interacting, we'll return to our example of executing MD on a remote cluster.
