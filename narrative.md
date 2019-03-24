@@ -148,3 +148,7 @@ It executes and completes without issue, probably on a different node of the clu
 Upon completion of FireWork (4), all of the FireWorks marked (5) will be changed to the "ready" state.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_5r.svg)
+
+This means that any available Fireworker with a matching category can execute each of these tasks, and since we have plenty of Fireworker processes asking for work, they will likely be executed at the same time.
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_5.svg)
