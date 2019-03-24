@@ -81,3 +81,5 @@ These data elements are handled by the following infrastructure components:
 To illustrate these components all interacting, we'll return to our example of executing MD on a remote cluster.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture.svg)
+
+
