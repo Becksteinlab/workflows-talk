@@ -130,4 +130,15 @@ If the Fireworker raises on exception while executing the FireWork, it will tell
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_3f.svg)
 
+This situation requires manual intervention from the user to change the state of the FireWork from "failed" to "ready".
+Individual FireWorks can fail for a variety of reasons, but these can usually be categorized as *systematic* or *random* failures.
+A *systematic* failure occurs when the assumptions of a FireWork's underlying code are no longer valid, and if re-run, it will fail again in the same way.
+A *random* failure is one due to some transient change of conditions, such as a filesystem failure, that may not show itself again if the FireWork is re-run.
 
+Before setting a "failed" FireWork to "ready", the user should always examine the Fireworker logs to characterize the issue.
+This is the cost of automation such as this; though the system can spare one the tedium of manual execution, it still requires manual intervention *some* of the time.
+
+Perhaps we chalk this failure up to *random*, and try a re-run.
+It executes and completes without issue, probably on a different node of the cluster as part of a different compute job, run at a later time.
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_4r.svg)
