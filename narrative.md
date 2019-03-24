@@ -50,7 +50,13 @@ We can store this workflow in a central place accessible to all machines that ne
 This system can execute hundreds of these workflows, perhaps each running very different simulations, at the same time, using the same infrastructure.
 This is powerful, and can win us some immense throughput.
 
-As an illustration of this throughput, we have a 
+As an illustration of this throughput, here is the throughput a system like this delivered in late summer 2016.
+We used four compute clusters, performing nearly 400 simulations of the membrane protein NapA to compute an alchemical binding pathway for free energy calculation.
+Each simulation numbered over 130,000 atoms, and over 15 days we collected over 13 microseconds of trajectory data.
+These simulations were executed in short (~4 hour) segments, nearly 20,000 segments in total.
+We consumed 1.1 million CPU hours in this time.
+
+![throughput](figures/throughput_panel.pdf)
 
 ## Fireworks: a general-purpose workflow automation system
 
