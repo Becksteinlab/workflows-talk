@@ -66,7 +66,7 @@ This is not the first workflow automation system that uses DAGs for expression o
 
 Fireworks includes the following data elements, with fun names to make them easier to talk about:
 1. *Workflow*: a DAG, with tasks as nodes and dependencies expressed as vectors between them.
-2. *FireWork*: a single task in a *Workflow*, with discrete state (waiting, ready, running, complete, failed).
+2. *FireWork*: a single node/task in a *Workflow*, with discrete state (waiting, ready, running, complete, failed).
 3. *Firetask*: a subtask of a *FireWork*. These are run in sequence within a *FireWork*, and all must succeed for the *FireWork* to succeed.
 
 These data elements are handled by the following infrastructure components:
@@ -82,4 +82,12 @@ To illustrate these components all interacting, we'll return to our example of e
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture.svg)
 
+Fireworkers running on the fileserver and compute nodes query the Launchpad for available work.
+For a Workflow that is yet to see execution, FireWorks with no dependencies are in a "ready" state, while those with dependencies are "not ready".
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_r.svg)
+
+FireWorks that are "ready" can be executed by a requesting Fireworker; when executing, the FireWork is in a "running" state:
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_1.svg)
 
