@@ -142,3 +142,9 @@ Perhaps we chalk this failure up to *random*, and try a re-run.
 It executes and completes without issue, probably on a different node of the cluster as part of a different compute job, run at a later time.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_4r.svg)
+
+### Parallelism for free(!)
+
+Upon completion of FireWork (4), all of the FireWorks marked (5) will be changed to the "ready" state.
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_5r.svg)
