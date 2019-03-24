@@ -83,7 +83,7 @@ To illustrate these components all interacting, we'll return to our example of e
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture.svg)
 
 Fireworkers running on the fileserver and compute nodes query the Launchpad for available work.
-For a Workflow that is yet to see execution, FireWorks with no dependencies are in a "ready" state, while those with dependencies are "not ready".
+For a Workflow that is yet to see execution, FireWorks with no upstream dependencies are in a "ready" state, while those with upstream dependencies are "not ready".
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_r.svg)
 
@@ -91,3 +91,11 @@ FireWorks that are "ready" can be executed by a requesting Fireworker; when exec
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_1.svg)
 
+During this time, other Fireworkers may be constantly requesting work from the Launchpad.
+Because no FireWorks are in the "ready" state, they will get nothing to do.
+It should be noted, however, that when many workflows such as this are avialble to execute in the Launchpad, there is usually more work available to do.
+
+When a Fireworker completes its work without issue, it changes the state of its FireWork to "complete".
+Any FireWorks whose upstream dependencies are all "complete" are set to "ready".
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_2r.svg)
