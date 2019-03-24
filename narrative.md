@@ -152,3 +152,22 @@ Upon completion of FireWork (4), all of the FireWorks marked (5) will be changed
 This means that any available Fireworker with a matching category can execute each of these tasks, and since we have plenty of Fireworker processes asking for work, they will likely be executed at the same time.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_5.svg)
+
+It's important to remember that the Fireworker processes have no awareness of each other, and have no awareness of what else is being executed.
+If we want a FireWork to *always* execute before another FireWork, we *must* add an explicit dependency link between them encoding this.
+FireWorks with no dependency links, such as those marked (5), may execute in any order by any corresponding Fireworker.
+
+Because these tasks are independent, they can also fail independently.
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_5f.svg)
+
+As discussed previously, failures require manual investigation and intervention to proceed.
+If we're confident we've fixed the underlying issue, we can mark the "failed" FireWork as "ready" again:
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_5fr.svg)
+
+#### Victory
+
+When all FireWorks of a Workflow are complete, the whole Workflow is considered completed.
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_c.svg)
