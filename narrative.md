@@ -56,7 +56,7 @@ Each simulation numbered over 130,000 atoms, and over 15 days we collected over 
 These simulations were executed in short (~4 hour) segments, nearly 20,000 segments in total.
 We consumed 1.1 million CPU hours in this time.
 
-![throughput](figures/throughput_panel.pdf)
+![throughput](figures/throughput_panel.png)
 
 ## Fireworks: a general-purpose workflow automation system
 
