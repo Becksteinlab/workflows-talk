@@ -78,6 +78,9 @@ These data elements are handled by the following infrastructure components:
    If it fails to complete, it will set the state to *failed*; if it succeeds it will set it to *complete*.
    These processes must be able to reach the *Launchpad* to work.
 
+
+### A play-by-play of workflow execution
+
 To illustrate these components all interacting, we'll return to our example of executing MD on a remote cluster.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture.svg)
@@ -99,3 +102,9 @@ When a Fireworker completes its work without issue, it changes the state of its 
 Any FireWorks whose upstream dependencies are all "complete" are set to "ready".
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_2r.svg)
+
+The process continues, with "ready" Fireworks consumed and executed by Fireworkers:
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_2.svg)
+
+
