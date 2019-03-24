@@ -103,8 +103,23 @@ Any FireWorks whose upstream dependencies are all "complete" are set to "ready".
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_2r.svg)
 
-The process continues, with "ready" Fireworks consumed and executed by Fireworkers:
+The process continues, with "ready" Fireworks consumed and executed by Fireworkers.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_2.svg)
 
+Since Fireworkers are all independent processes, unaware of each other, it is pretty random which of these workers the FireWork will execute on.
+Fireworker processes should be started up on machines with this in mind.
 
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_3r.svg)
+
+However, it is possible to assign a [category](https://materialsproject.github.io/fireworks/controlworker.html#method-2-using-categories) to FireWorks so that they will only run on a Fireworker with a matching category.
+In our example, we actually have two categories of FireWorks: `blue` and `orange`.
+`blue` Fireworkers will only execute `blue` FireWorks; `orange` Fireworkers will only execute `orange `FireWorks.
+This is important for this workflow since we want some tasks to run on our fileserver, and only the simulation task (3) to run on a cluster compute node.
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_3.svg)
+
+What happens if the simulation fails, perhaps due to a filesystem issue on the remote cluster?
+If the Fireworker raises on exception while executing the FireWork, it will tell the Launchpad to mark the FireWork as failed.
+
+![architecture and dataflow of Fireworks](figures/dataflow_architecture_3f.svg)
