@@ -154,7 +154,7 @@ This means that any available Fireworker with a matching category can execute ea
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_5.svg)
 
 It's important to remember that the Fireworker processes have no awareness of each other, and have no awareness of what else is being executed.
-If we want a FireWork to *always* execute before another FireWork, we *must* add an explicit dependency link between them encoding this.
+If we want a FireWork to *always* execute before another FireWork, there *must* be an explicit dependency link between them encoding this.
 FireWorks with no dependency links, such as those marked (5), may execute in any order by any corresponding Fireworker.
 
 Because these tasks are independent, they can also fail independently.
