@@ -85,6 +85,8 @@ To illustrate these components all interacting, we'll return to our example of e
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture.svg)
 
+#### Execution basics
+
 Fireworkers running on the fileserver and compute nodes query the Launchpad for available work.
 For a Workflow that is yet to see execution, FireWorks with no upstream dependencies are in a "ready" state, while those with upstream dependencies are "not ready".
 
@@ -112,6 +114,8 @@ Fireworker processes should be started up on machines with this in mind.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_3r.svg)
 
+#### Directing FireWorks to specific FireWorkers using categories
+
 However, it is possible to assign a [category](https://materialsproject.github.io/fireworks/controlworker.html#method-2-using-categories) to FireWorks so that they will only run on a Fireworker with a matching category.
 In our example, we actually have two categories of FireWorks: `blue` and `orange`.
 `blue` Fireworkers will only execute `blue` FireWorks; `orange` Fireworkers will only execute `orange `FireWorks.
@@ -119,7 +123,11 @@ This is important for this workflow since we want some tasks to run on our files
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_3.svg)
 
+#### Dealing with failure
+
 What happens if the simulation fails, perhaps due to a filesystem issue on the remote cluster?
 If the Fireworker raises on exception while executing the FireWork, it will tell the Launchpad to mark the FireWork as failed.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_3f.svg)
+
+
