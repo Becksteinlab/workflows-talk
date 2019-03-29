@@ -37,10 +37,10 @@ A typical molecular dynamics workflow probably consists of at least the followin
 5. We could then run any number of postprocessing or analysis tasks.
    We might also decide whether or not to continue the simulation, which would mean we start a new set of tasks beginning with one like (2).
 
-This set of tasks could be expressed as a *workflow*, which happens to be an *directed, acyclic graph* ("DAG") giving nodes as tasks and arrows for dependencies.
+This set of tasks could be expressed as a *workflow*, which happens to be a *directed, acyclic graph* ("DAG") giving nodes as tasks and arrows for dependencies.
 This can be thought of as a flowchart of the work we need to perform.
 It turns out that the system of automation we are presenting can perform exactly the tasks laid out in this way, as each task is:
-1. Discretely defined. Each task either waiting for dependencies, ready, running, complete, or failed.
+1. Discretely defined. Each task is either waiting on dependencies, ready, running, complete, or failed.
    Because the state of a task is one of these discrete values, it is clearly defined when we can execute a task that is dependent on another.
 2. *Idempotent*, meaning that if we were in the middle of a task and it failed for some reason, we could just do that task again and we'd be fine.
    There would be no side effects to re-running a task, save for some resource cost (CPU hours, bandwidth).
@@ -74,8 +74,8 @@ These data elements are handled by the following infrastructure components:
    This is a MongoDB database.
 2. *Fireworkers*: processes launched on other machines to execute work.
    These processes reach out across the network, often the internet, to query the *Launchpad*.
-   They will grab the next available *ready* *FireWork*, set its state to *running*, and execute it.
-   If it fails to complete, it will set the state to *failed*; if it succeeds it will set it to *complete*.
+   They will grab the next available "ready" *FireWork*, set its state to "running", and execute it.
+   If it fails to complete, it will set the state to "failed"; if it succeeds it will set it to "complete".
    These processes must be able to reach the *Launchpad* to work.
 
 
@@ -171,3 +171,16 @@ If we're confident we've fixed the underlying issue, we can mark the "failed" Fi
 When all FireWorks of a Workflow are complete, the whole Workflow is considered completed.
 
 ![architecture and dataflow of Fireworks](figures/dataflow_architecture_c.svg)
+
+
+## Building workflows in Python
+
+
+
+
+
+
+## Things we didn't talk about in detail
+
+1. Submitting Fireworkers to a queueing system.
+   See the Fireworks docs for how to do do this, and how to make effective use of `qlauncher`s.
