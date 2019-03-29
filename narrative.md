@@ -175,9 +175,120 @@ When all FireWorks of a Workflow are complete, the whole Workflow is considered 
 
 ## Building workflows in Python
 
+Fireworks is written in Python, a programming language that enjoys immense popularity and wide appeal across many disciplines.
+This is an advantage, as this makes it possible to use a vast array of tools for writing individual tasks in our workflows, as well as for building the workflows themselves.
+To illustrate this, we'll continue to use our MD workflow as an example.
+
+### Building workflows programmatically
+
+Our MD workflow can be built programmatically, directly in Python.
+Although Fireworks allows workflows to be defined in a declarative-style YAML format as well, using Python allows for easier automation of workflow creation, which is especially necessary when running hundreds of simulations with differing parameter choices.
+It also allows us to do some advanced things if needed, such as grafting two workflows together.
+
+Below is an example of a function we could write that would generate a workflow from a few pieces of information.
 
 
+```python
+def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
+    """Generate a workflow for MD execution.
 
+    Parameters
+    ----------
+    simdir: path-like
+        Simulation directory.
+    uuid : str
+        Unique identifier for this simulation.
+    stages : path-like
+        Path to a yaml file giving a list of dictionaries with the following keys:
+            - 'server': server host to transfer to
+            - 'user': username to authenticate with
+            - 'staging': absolute path to staging area on remote resource
+    files : list
+        Names of files (not paths) needed for each leg of simulation.
+    postrun_wf : Workflow
+        Workflow to perform after each copyback; performed in parallel to continuation run.
+
+    """
+    
+    ## STAGING
+    ft_stage = StagingTask(stages=stages,
+                           files=files,
+                           archive=simdir,
+                           uuid=uuid,
+                           shell_interpret=True,
+                           max_retry=5,
+                           allow_missing=True)
+
+    fw_stage = Firework([ft_stage],
+                        spec={'_launch_dir': archive,
+                              '_category': 'local'},
+                        name='staging')
+
+    ## MD EXECUTION
+    # copy input files to scratch space
+    ft_copy = Stage2RunDirTask(uuid=uuid)
+
+    # send info on where files live to pull firework
+    ft_info = BeaconTask(uuid=uuid)
+
+    # next, run MD
+    ft_md = ScriptTask(script='run_md.sh {}'.format(
+                            os.path.join('${SCRATCHDIR}/', uuid)),
+                       use_shell=True,
+                       fizzle_bad_rc=True)
+
+    fw_md = Firework([ft_copy, ft_info, ft_md],
+                     spec={'_category': 'md'},
+                     name='md',
+                     parents=fw_stage)
+
+ 
+    ## PULL
+    ft_copyback = FilePullTask(dest=archive)
+
+    fw_copyback = Firework([ft_copyback],
+                           spec={'_launch_dir': archive,
+                                 '_category': 'local'},
+                           name='pull',
+                           parents=fw_md)
+
+    ## CONTINUE?
+    if md_engine == 'gromacs':
+        ft_continue = GromacsContinueTask(sim=simdir, archive=archive,
+                stages=stages, files=files, md_engine=md_engine,
+                md_category='md', local_category='local',
+                postrun_wf=postrun_wf, post_wf=post_wf)
+    else:
+        raise ValueError("No known md engine `{}`.".format(md_engine))
+
+    fw_continue = Firework([ft_continue],
+                           spec={'_launch_dir': archive,
+                                 '_category': 'local'},
+                           name='continue',
+                           parents=fw_cleanup)
+
+    # BUILD WORKFLOW
+    wf = Workflow([fw_stage, fw_md, fw_copyback, fw_cleanup, fw_continue],
+                  name=uuid)
+
+    ## POSTPROCESSING
+    if postrun_wf:
+        if isinstance(postrun_wf, dict):
+            postrun_wf = Workflow.from_dict(postrun_wf)
+
+        wf.append_wf(Workflow.from_wflow(postrun_wf), [fw_copyback.fw_id])
+        
+    return wf
+```
+
+
+### Writing Firetasks
+
+
+### Self-modifying workflows
+
+
+`mdworks` gives an example for how to do this.
 
 
 ## Things we didn't talk about in detail
