@@ -288,7 +288,7 @@ def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
 ### Self-modifying workflows
 
 
-`mdworks` gives an example for how to do this.
+[`mdworks`](https://github.com/Becksteinlab/mdworks) gives an example for how to do this.
 
 
 ## Things we didn't talk about in detail
