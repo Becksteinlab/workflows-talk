@@ -429,6 +429,31 @@ You may notice that while much of the code is doing the steps required to move t
 Retry logic and exception handling are necessary when making complex machines talk to each other, but *Firetasks* can be made as complex as necessary to fail rarely but fail cleanly.
 When writing *Firetasks* such as these, start with the simplest implementation, then build in additional exception handling and retry logic where needed based on the failure modes observed when it's put into action.
 
+#### ScriptTask
+
+The *execute simulation* *FireWork* has three *FireTasks* to execute.
+The `Stage2RunDirTask` pulls files from the staging area on the compute node the *Fireworker* is executing on into the directory the simulation will run from.
+The `BeaconTask` pushes information into the *Launchpad* about *where* this run directory is, and on which host, so it is available to the *pull* *FireWork* that will run later.
+Finally, the `ScriptTask` executes the simulation.
+
+The `ScriptTask is a built-in *Firetask* definition to Fireworks.
+Our use of it in our `make_md_workflows` function above suggests that it needs to execute a `run_md.sh` script on the resource it executes on.
+This script may look like the following on, say, Stampede:
+
+```bash
+#!/bin/bash
+
+RUNDIR=$1
+cd $RUNDIR
+
+$MDRUN mdrun -stepout 1000 -v -s $TPR $MDRUN_OPTS -deffnm md -pin on -maxh $HOURS -cpi -noappend
+```
+
+The script itself has all the options and execution parameters in place required for this simulation to run on the remote host.
+Some of the environment variables set here are set by the submission script to the queueing system, the context in which *this* script will execute.
+Executing *Fireworkers* on HPC machines with queueing systems is outside the scope of this talk material, but more details can be found in the [Fireworks docs](https://materialsproject.github.io/fireworks/queue_tutorial.html).
+
+
 
 ### Self-modifying workflows
 
@@ -547,4 +572,4 @@ To learn more, visit the [Fireworks docs on the topic](https://materialsproject.
    There may be more development of that repo in the future to make Fireworks easier to deploy.
 
 1. Submitting Fireworkers to a queueing system.
-   See the Fireworks docs for how to do do this, and how to make effective use of `qlauncher`s.
+   See the [Fireworks docs](https://materialsproject.github.io/fireworks/queue_tutorial.html) for how to do do this, and how to make effective use of `qlauncher`s.
