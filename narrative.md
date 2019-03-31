@@ -429,10 +429,6 @@ You may notice that while much of the code is doing the steps required to move t
 Retry logic and exception handling are necessary when making complex machines talk to each other, but *Firetasks* can be made as complex as necessary to fail rarely but fail cleanly.
 When writing *Firetasks* such as these, start with the simplest implementation, then build in additional exception handling and retry logic where needed based on the failure modes observed when it's put into action.
 
-#### `StagingTask`: moving files to remote resources with SFTP using Python
-
-As an example of a task that is responsible for moving data from one compute resource to another, here is the `StagingTask` we use to push simulation input files to remote resources:
-
 
 ### Self-modifying workflows
 
