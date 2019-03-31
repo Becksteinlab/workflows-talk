@@ -436,7 +436,7 @@ The `Stage2RunDirTask` pulls files from the staging area on the compute node the
 The `BeaconTask` pushes information into the *Launchpad* about *where* this run directory is, and on which host, so it is available to the *pull* *FireWork* that will run later.
 Finally, the `ScriptTask` executes the simulation.
 
-The `ScriptTask is a built-in *Firetask* definition to Fireworks.
+The `ScriptTask` is a built-in *Firetask* definition to Fireworks.
 Our use of it in our `make_md_workflows` function above suggests that it needs to execute a `run_md.sh` script on the resource it executes on.
 This script may look like the following on, say, Stampede:
 
