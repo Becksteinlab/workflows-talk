@@ -306,7 +306,7 @@ This is to illustrate that we can create custom workflows for postprocessing and
 ### Self-modifying workflows
 
 
-`mdworks` gives an example for how to do this.
+[`mdworks`](https://github.com/Becksteinlab/mdworks) gives an example for how to do this.
 
 
 ## Things we didn't talk about in detail
