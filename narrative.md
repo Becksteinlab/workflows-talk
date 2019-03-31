@@ -527,13 +527,24 @@ class GromacsContinueTask(FireTaskBase):
             return FWAction(additions=[wf])
 ```
 
+This grafting process is illustrated below.
+The *continue?* *FireWork* creates a replica of the original workflow starting from the *staging* task (since we don't want to do setup again).
+The new *staging* task becomes a dependent task of the *continue?* task.
+This process continues until the simulation has completed all of its steps.
 
+![self-propagation of the workflow by the "continue?" task](figures/md_workflow_propagate.svg)
 
-
-[`mdworks`](https://github.com/Becksteinlab/mdworks) gives an example for how to do this.
+The ability of workflows to *modify* themselves is not typical of workflow automation systems.
+To our knowledge this remains a unique feature of Fireworks.
+This creates vast opportunities for building large-scale simulation-analysis-simulation pipelines, where new simulations with new parameters and starting conditions are generated based on the results from previous runs.
+To learn more, visit the [Fireworks docs on the topic](https://materialsproject.github.io/fireworks/dynamic_wf_tutorial.html).
 
 
 ## Things we didn't talk about in detail
+
+1. [`mdworks`](https://github.com/Becksteinlab/mdworks) gives a more full-featured example of the workflow demonstrated here.
+   It is not actively maintained, but can give a good starting point for building out a system like this.
+   There may be more development of that repo in the future to make Fireworks easier to deploy.
 
 1. Submitting Fireworkers to a queueing system.
    See the Fireworks docs for how to do do this, and how to make effective use of `qlauncher`s.
