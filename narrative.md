@@ -189,13 +189,15 @@ Below is an example of a function we could write that would generate a workflow 
 
 
 ```python
-def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
+def make_md_workflow(simdir, params, uuid, stages, files, postrun_wf=None):
     """Generate a workflow for MD execution.
 
     Parameters
     ----------
-    simdir: path-like
+    simdir : path-like
         Simulation directory.
+    params : dict
+        Dictionary of parameters for simulation setup.
     uuid : str
         Unique identifier for this simulation.
     stages : path-like
@@ -209,8 +211,17 @@ def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
         Workflow to perform after each copyback; performed in parallel to continuation run.
 
     """
+
+    ## 1. SETUP
+    ft_setup = SetupTask(dir=simdir,
+                         params=params)
+
+    fw_setup = Firework([ft_setup],
+                        spec={'_launch_dir': simdir,
+                              '_category': 'local'},
+                        name='setup')
     
-    ## STAGING
+    ## 2. STAGING
     ft_stage = StagingTask(stages=stages,
                            files=files,
                            archive=simdir,
@@ -222,9 +233,10 @@ def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
     fw_stage = Firework([ft_stage],
                         spec={'_launch_dir': archive,
                               '_category': 'local'},
-                        name='staging')
+                        name='staging',
+                        parents=fw_setup)
 
-    ## MD EXECUTION
+    ## 3. MD EXECUTION
     # copy input files to scratch space
     ft_copy = Stage2RunDirTask(uuid=uuid)
 
@@ -243,7 +255,7 @@ def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
                      parents=fw_stage)
 
  
-    ## PULL
+    ## 4. PULL
     ft_copyback = FilePullTask(dest=archive)
 
     fw_copyback = Firework([ft_copyback],
@@ -252,7 +264,7 @@ def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
                            name='pull',
                            parents=fw_md)
 
-    ## CONTINUE?
+    ## 5. CONTINUE?
     if md_engine == 'gromacs':
         ft_continue = GromacsContinueTask(sim=simdir, archive=archive,
                 stages=stages, files=files, md_engine=md_engine,
@@ -271,7 +283,7 @@ def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
     wf = Workflow([fw_stage, fw_md, fw_copyback, fw_cleanup, fw_continue],
                   name=uuid)
 
-    ## POSTPROCESSING
+    ## 5. POSTPROCESSING
     if postrun_wf:
         if isinstance(postrun_wf, dict):
             postrun_wf = Workflow.from_dict(postrun_wf)
@@ -280,6 +292,12 @@ def make_md_workflow(simdir, uuid, stages, files, postrun_wf=None):
         
     return wf
 ```
+
+This function can generate our workflow, with individual *Firetasks* shown within each *FireWork*.
+We've modified the tail end a bit to include a "continue?" *FireWork* alongside a chain of postprocessing *FireWorks*, since these are grafted on at the end as a separate workflow given as a keyword argument to our function.
+This is to illustrate that we can create custom workflows for postprocessing and graft them onto our execution workflow so these tasks are performed as each MD trajectory segment is computed.
+
+
 
 
 ### Writing Firetasks
