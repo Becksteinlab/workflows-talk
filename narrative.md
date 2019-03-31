@@ -189,15 +189,13 @@ Below is an example of a function we could write that would generate a workflow 
 
 
 ```python
-def make_md_workflow(simdir, params, uuid, stages, files, postrun_wf=None):
+def make_md_workflow(simdir, uuid, stages, files, params=None, postrun_wf=None):
     """Generate a workflow for MD execution.
 
     Parameters
     ----------
     simdir : path-like
         Simulation directory.
-    params : dict
-        Dictionary of parameters for simulation setup.
     uuid : str
         Unique identifier for this simulation.
     stages : path-like
@@ -207,19 +205,24 @@ def make_md_workflow(simdir, params, uuid, stages, files, postrun_wf=None):
             - 'staging': absolute path to staging area on remote resource
     files : list
         Names of files (not paths) needed for each leg of simulation.
+    params : dict
+        Dictionary of parameters for simulation setup. If `None`, no setup performed.
     postrun_wf : Workflow
         Workflow to perform after each copyback; performed in parallel to continuation run.
 
     """
 
     ## 1. SETUP
-    ft_setup = SetupTask(dir=simdir,
-                         params=params)
+    if params:
+        ft_setup = SetupTask(dir=simdir,
+                             params=params)
 
-    fw_setup = Firework([ft_setup],
-                        spec={'_launch_dir': simdir,
-                              '_category': 'local'},
-                        name='setup')
+        fw_setup = Firework([ft_setup],
+                            spec={'_launch_dir': simdir,
+                                  '_category': 'local'},
+                            name='setup')
+    else:
+        fw_setup = None
     
     ## 2. STAGING
     ft_stage = StagingTask(stages=stages,
@@ -426,8 +429,109 @@ You may notice that while much of the code is doing the steps required to move t
 Retry logic and exception handling are necessary when making complex machines talk to each other, but *Firetasks* can be made as complex as necessary to fail rarely but fail cleanly.
 When writing *Firetasks* such as these, start with the simplest implementation, then build in additional exception handling and retry logic where needed based on the failure modes observed when it's put into action.
 
+#### `StagingTask`: moving files to remote resources with SFTP using Python
+
+As an example of a task that is responsible for moving data from one compute resource to another, here is the `StagingTask` we use to push simulation input files to remote resources:
+
 
 ### Self-modifying workflows
+
+The `GromacsContinueTask` in our workflow implements a feature of Fireworks that is relatively unique among workflow automation schemes.
+It uses *GromacsWrapper* to crack open the contents of the `gromacs` run-input file (the TPR file) and restart file (the CPT file), then compares the total number of frames to the current frame number.
+If the current frame number is less than the total number of frames we would like to run, the task runs our `make_md_workflow` function itself to generate a new workflow identical to our current one.
+It then grafts this new workflow onto itself as a dependent set of tasks.
+
+```python
+
+class GromacsContinueTask(FireTaskBase):
+    """
+    A FireTask to check the step listed in the CPT file against the total
+    number of steps desired in the TPR file. If there are steps left to
+    go, another MD workflow is submitted.
+
+    Requires `gmx dump` be present in the session's PATH.
+
+    Parameters
+    ----------
+    simdir : path-like
+        Simulation directory.
+    uuid : str
+        Unique identifier for this simulation.
+    stages : list
+        Dicts giving for each of the following keys:
+            - 'server': server host to transfer to
+            - 'user': username to authenticate with
+            - 'staging': absolute path to staging area on remote resource
+    files : list 
+        Names of files (not paths) needed for each leg of the simulation. Need
+        not exist, but if they do they will get staged before each run.
+    postrun_wf : Workflow
+        Workflow to perform after each copyback; performed in parallel to continuation run.
+
+    """
+    _fw_name = 'GromacsContinueTask'
+    required_params = ["simdir",
+                       "uuid",
+                       "stages",
+                       "files",
+                       "postrun_wf"]
+
+    def run_task(self, fw_spec):
+        import gromacs
+        from ..general import make_md_workflow
+
+        # bit of an ad-hoc way to grab the checkpoint file
+        cpt = [f for f in self['files']
+                   if (('cpt' in f) and ('prev' not in f))]
+
+        if len(cpt) > 1:
+            raise ValueError("Multiple CPT files in 'files'; include "
+                             "only one.")
+        elif len(cpt) < 1:
+            raise ValueError("No CPT file in 'files'; "
+                             "cannot do continue check.")
+        else:
+            cpt = os.path.join(self['archive'], cpt[0])
+
+        # bit of an ad-hoc way to grab the tpr file
+        tpr = [f for f in self['files'] if ('tpr' in f)]
+
+        if len(tpr) > 1:
+            raise ValueError("Multiple TPR files in 'files'; include "
+                             "only one.")
+        elif len(tpr) < 1:
+            raise ValueError("No TPR file in 'files'; "
+                             "cannot do continue check.")
+        else:
+            tpr = os.path.join(self['archive'], tpr[0])
+
+        # let's extract the current frame and place it in the archive, since
+        # this is useful for starting runs up at any point from the current end
+        gromacs.trjconv(f=cpt, s=tpr,
+                        o=os.path.join(self['archive'], '{}.gro'.format(
+                            os.path.splitext(os.path.basename(tpr))[0])),
+                        input=('0',))
+
+        # extract step number from CPT file
+        out = gromacs.dump(cp=cpt, stdout=False)
+        step = int([line.split(' ')[-1] for line in out[1].split('\n') if 'step = ' in line][0])
+
+        # extract nsteps from TPR file
+        out = gromacs.dump(s=tpr, stdout=False)
+        nsteps = int([line.split(' ')[-1] for line in out[1].split('\n') if 'nsteps' in line][0])
+
+        # if step < nsteps, we submit a new workflow
+        if step < nsteps:
+            wf = make_md_workflow(simdir=self['simdir'],
+                                  uuid=self['uuid'],
+                                  stages=self['stages'],
+                                  files=self['files'],
+                                  postrun_wf=self['postrun_wf'])
+
+            return FWAction(additions=[wf])
+```
+
+
 
 
 [`mdworks`](https://github.com/Becksteinlab/mdworks) gives an example for how to do this.
