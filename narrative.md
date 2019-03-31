@@ -429,7 +429,7 @@ You may notice that while much of the code is doing the steps required to move t
 Retry logic and exception handling are necessary when making complex machines talk to each other, but *Firetasks* can be made as complex as necessary to fail rarely but fail cleanly.
 When writing *Firetasks* such as these, start with the simplest implementation, then build in additional exception handling and retry logic where needed based on the failure modes observed when it's put into action.
 
-#### ScriptTask
+#### `ScriptTask`: execute a shell script
 
 The *execute simulation* *FireWork* has three *FireTasks* to execute.
 The `Stage2RunDirTask` pulls files from the staging area on the compute node the *Fireworker* is executing on into the directory the simulation will run from.
