@@ -2,6 +2,9 @@
 
 Materials for ACS 2019 talk on automated workflows for molecular dynamics simulations.
 
+## Slides
+The complete slides are in [ACS_Spring2019_Beckstein.pdf](ACS_Spring2019_Beckstein.pdf).
+
 ## Outline
 
 See [narrative](narrative.md).
